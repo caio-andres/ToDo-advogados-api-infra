@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 from datetime import datetime
 from usuario import Usuario
+from enum import Enum
 
 
-class Status(enumerate):
-    pendente: str = "Pendente"
-    em_andamento: str = "Em Andamento"
-    concluido: str = "Concluída"
+class Status(Enum):
+    PENDENTE: str = "Pendente"
+    EM_ANDAMENTO: str = "Em Andamento"
+    CONCLUIDO: str = "Concluída"
 
 
 class Tarefa(BaseModel):
