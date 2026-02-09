@@ -1,0 +1,21 @@
+# AWS Lambda Powertools (versão compatível com Pydantic v2)
+aws-lambda-powertools==2.32.0
+
+# AWS X-Ray SDK (necessário mesmo com tracing desabilitado)
+aws-xray-sdk==2.12.0
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# Validation (versão compatível)
+pydantic==2.9.2
+pydantic-settings==2.5.2
+email-validator==2.1.0
+
+# Authentication
+pyjwt==2.8.0
+bcrypt==4.1.2
+
+# Utilities
+python-dotenv==1.0.0
