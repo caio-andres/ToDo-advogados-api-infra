@@ -10,8 +10,6 @@ from .base import Base
 
 
 class Usuario(Base):
-    """Usuario model"""
-
     __tablename__ = "usuario"
 
     # Primary Key

@@ -32,7 +32,7 @@ router = Router()
 
 
 def parse_json_body(schema_class):
-    """Parse and validate JSON body using Pydantic schema"""
+    """Parse e valida o JSON body utilizando Pydantic schema"""
 
     try:
         body = ApiGatewayResolver.current_event.json_body
@@ -48,8 +48,6 @@ def parse_json_body(schema_class):
 @router.post("/tarefas")
 @tracer.capture_method
 def create_tarefa():
-    """Create new tarefa"""
-
     logger.info("Creating new tarefa")
 
     try:
@@ -76,8 +74,6 @@ def create_tarefa():
 @router.get("/tarefas")
 @tracer.capture_method
 def list_tarefas():
-    """List tarefas for current usuario"""
-
     logger.info("Listing tarefas")
 
     try:
@@ -145,8 +141,6 @@ def get_tarefa(id: str):
 @router.put("/tarefas/<id>")
 @tracer.capture_method
 def update_tarefa(id: str):
-    """Update tarefa"""
-
     logger.info(f"Updating tarefa: {id}")
 
     try:
@@ -174,8 +168,6 @@ def update_tarefa(id: str):
 @router.delete("/tarefas/<id>")
 @tracer.capture_method
 def delete_tarefa(id: str):
-    """Delete tarefa"""
-
     logger.info(f"Deleting tarefa: {id}")
 
     try:

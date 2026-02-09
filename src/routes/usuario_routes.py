@@ -23,7 +23,6 @@ from utils.exceptions import UnauthorizedException, NotFoundException, ConflictE
 logger = Logger(child=True)
 tracer = Tracer(disabled=True)
 
-# Create router
 router = Router()
 
 
@@ -44,7 +43,6 @@ def parse_json_body(schema_class):
 @router.post("/usuarios")
 @tracer.capture_method
 def create_usuario():
-    """Create new usuario"""
     logger.info("Creating new usuario")
 
     data = parse_json_body(UsuarioCreate)
@@ -68,7 +66,6 @@ def create_usuario():
 @router.post("/login")
 @tracer.capture_method
 def login():
-    """Authenticate usuario and get access token"""
     logger.info("Usuario login attempt")
 
     data = parse_json_body(UsuarioLogin)

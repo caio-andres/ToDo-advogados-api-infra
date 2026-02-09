@@ -28,9 +28,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 @contextmanager
 def get_db() -> Session:
     """
-    Database session context manager
-
-    Usage:
+    Para usar:
         with get_db() as db:
             user = db.query(Usuario).first()
     """

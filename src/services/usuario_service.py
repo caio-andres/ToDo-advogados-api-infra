@@ -1,7 +1,3 @@
-"""
-Usuario Service - Business Logic
-"""
-
 from sqlalchemy.orm import Session
 from aws_lambda_powertools import Logger
 from models import Usuario
@@ -13,23 +9,8 @@ logger = Logger(child=True)
 
 
 class UsuarioService:
-    """Usuario business logic"""
-
     @staticmethod
     def create_usuario(db: Session, data: UsuarioCreate) -> UsuarioResponse:
-        """
-        Create new usuario
-
-        Args:
-            db: Database session
-            data: Usuario creation data
-
-        Returns:
-            Created usuario
-
-        Raises:
-            ConflictException: If email already exists
-        """
         # Check if email already exists
         existing = db.query(Usuario).filter(Usuario.email == data.email).first()
         if existing:
@@ -52,20 +33,6 @@ class UsuarioService:
     def authenticate(
         db: Session, email: str, senha: str
     ) -> tuple[UsuarioResponse, str]:
-        """
-        Authenticate usuario and generate token
-
-        Args:
-            db: Database session
-            email: Usuario email
-            senha: Usuario password
-
-        Returns:
-            Tuple of (usuario, access_token)
-
-        Raises:
-            UnauthorizedException: If credentials are invalid
-        """
         # Find usuario by email
         usuario = db.query(Usuario).filter(Usuario.email == email).first()
 
@@ -86,19 +53,6 @@ class UsuarioService:
 
     @staticmethod
     def get_usuario_by_id(db: Session, usuario_id: str) -> UsuarioResponse:
-        """
-        Get usuario by ID
-
-        Args:
-            db: Database session
-            usuario_id: Usuario ID
-
-        Returns:
-            Usuario data
-
-        Raises:
-            NotFoundException: If usuario not found
-        """
         usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
 
         if not usuario:

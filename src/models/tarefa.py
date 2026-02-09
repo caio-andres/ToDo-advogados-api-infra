@@ -1,7 +1,3 @@
-"""
-Tarefa ORM Model
-"""
-
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -11,17 +7,12 @@ from .base import Base
 
 
 class StatusTarefa(str, PyEnum):
-    """Status enum for Tarefa"""
-
     PENDENTE = "pendente"
     EM_ANDAMENTO = "em_andamento"
     CONCLUIDA = "concluida"
-    CANCELADA = "cancelada"
 
 
 class Tarefa(Base):
-    """Tarefa model"""
-
     __tablename__ = "tarefa"
 
     # Primary Key
@@ -60,6 +51,3 @@ class Tarefa(Base):
     criador: Mapped["Usuario"] = relationship(
         "Usuario", back_populates="tarefas", foreign_keys=[criado_por]
     )
-
-    def __repr__(self) -> str:
-        return f"<​Tarefa(id={self.id}, titulo={self.titulo}, status={self.status})>"

@@ -15,14 +15,7 @@ ssm = boto3.client("ssm")
 @lru_cache(maxsize=128)
 def get_ssm_parameter(parameter_name: str, with_decryption: bool = True) -> str:
     """
-    Get parameter from SSM Parameter Store with caching
-
-    Args:
-        parameter_name: SSM parameter name
-        with_decryption: Decrypt SecureString parameters
-
-    Returns:
-        Parameter value
+    Pegar parâmetro do SSM através no nome
     """
     try:
         logger.info(f"Fetching SSM parameter: {parameter_name}")
@@ -36,9 +29,6 @@ def get_ssm_parameter(parameter_name: str, with_decryption: bool = True) -> str:
 
 
 class Config:
-    """Application configuration"""
-
-    # Environment
     ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
     # Database configuration (from SSM)

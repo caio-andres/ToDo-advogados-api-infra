@@ -1,6 +1,3 @@
-"""
-Tarefa Service - Business Logic
-"""
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -13,21 +10,8 @@ logger = Logger(child=True)
 
 
 class TarefaService:
-    """Tarefa business logic"""
-    
     @staticmethod
     def create_tarefa(db: Session, data: TarefaCreate, usuario_id: str) -> TarefaResponse:
-        """
-        Create new tarefa
-        
-        Args:
-            db: Database session
-            data: Tarefa creation data
-            usuario_id: ID of the user creating the tarefa
-        
-        Returns:
-            Created tarefa
-        """
         tarefa = Tarefa(
             titulo=data.titulo,
             descricao=data.descricao,
@@ -49,19 +33,6 @@ class TarefaService:
         limit: int = 100,
         offset: int = 0
     ) -> list[TarefaResponse]:
-        """
-        List tarefas for a user
-        
-        Args:
-            db: Database session
-            usuario_id: User ID
-            status: Filter by status (optional)
-            limit: Maximum number of results
-            offset: Pagination offset
-        
-        Returns:
-            List of tarefas
-        """
         query = db.query(Tarefa).filter(Tarefa.criado_por == usuario_id)
         
         if status:
@@ -74,21 +45,6 @@ class TarefaService:
     
     @staticmethod
     def get_tarefa_by_id(db: Session, tarefa_id: str, usuario_id: str) -> TarefaResponse:
-        """
-        Get tarefa by ID
-        
-        Args:
-            db: Database session
-            tarefa_id: Tarefa ID
-            usuario_id: User ID (for authorization)
-        
-        Returns:
-            Tarefa data
-        
-        Raises:
-            NotFoundException: If tarefa not found
-            ForbiddenException: If user doesn't own the tarefa
-        """
         tarefa = db.query(Tarefa).filter(Tarefa.id == tarefa_id).first()
         
         if not tarefa:
@@ -102,28 +58,7 @@ class TarefaService:
         return TarefaResponse.model_validate(tarefa)
     
     @staticmethod
-    def update_tarefa(
-        db: Session,
-        tarefa_id: str,
-        data: TarefaUpdate,
-        usuario_id: str
-    ) -> TarefaResponse:
-        """
-        Update tarefa
-        
-        Args:
-            db: Database session
-            tarefa_id: Tarefa ID
-            data: Update data
-            usuario_id: User ID (for authorization)
-        
-        Returns:
-            Updated tarefa
-        
-        Raises:
-            NotFoundException: If tarefa not found
-            ForbiddenException: If user doesn't own the tarefa
-        """
+    def update_tarefa(db: Session,tarefa_id: str, data: TarefaUpdate, usuario_id: str) -> TarefaResponse:
         tarefa = db.query(Tarefa).filter(Tarefa.id == tarefa_id).first()
         
         if not tarefa:
@@ -157,18 +92,6 @@ class TarefaService:
     
     @staticmethod
     def delete_tarefa(db: Session, tarefa_id: str, usuario_id: str) -> None:
-        """
-        Delete tarefa
-        
-        Args:
-            db: Database session
-            tarefa_id: Tarefa ID
-            usuario_id: User ID (for authorization)
-        
-        Raises:
-            NotFoundException: If tarefa not found
-            ForbiddenException: If user doesn't own the tarefa
-        """
         tarefa = db.query(Tarefa).filter(Tarefa.id == tarefa_id).first()
         
         if not tarefa:
@@ -182,3 +105,4 @@ class TarefaService:
         db.delete(tarefa)
         
         logger.info(f"Tarefa deleted: {tarefa_id} by user {usuario_id}")
+        
