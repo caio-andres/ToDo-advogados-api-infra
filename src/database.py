@@ -1,7 +1,3 @@
-"""
-Database connection and session management
-"""
-
 from models import Base
 from contextlib import contextmanager
 from sqlalchemy import create_engine
@@ -48,7 +44,7 @@ def get_db() -> Session:
 
 
 def init_db():
-    """Initialize database (create tables)"""
+    """Inicializa o database (create tables)"""
 
     logger.info("Creating database tables...")
     Base.metadata.create_all(bind=engine)
