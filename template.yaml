@@ -1,0 +1,274 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Todo Advogados API - Lambda + API Gateway
+
+# Parameters
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+# Resources
+Resources:
+  # Lambda Function
+  TodoApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-api
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Description: Todo Advogados API - MVCS Architecture
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Timeout: 30
+      MemorySize: 512
+
+      # Environment Variables
+      Environment:
+        Variables:
+          # Powertools
+          POWERTOOLS_SERVICE_NAME: todo-api
+          POWERTOOLS_METRICS_NAMESPACE: TodoAdvogados
+          POWERTOOLS_LOG_LEVEL: INFO
+          POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
+          POWERTOOLS_LOGGER_LOG_EVENT: false
+          POWERTOOLS_TRACE_DISABLED: true
+
+          # Environment
+          ENVIRONMENT: !Ref Environment
+
+          # SSM Parameter Names (não os valores!)
+          SSM_DB_HOST: !Sub /todo-advogados/${Environment}/db-host
+          SSM_DB_PORT: !Sub /todo-advogados/${Environment}/db-port
+          SSM_DB_NAME: !Sub /todo-advogados/${Environment}/db-name
+          SSM_DB_USER: !Sub /todo-advogados/${Environment}/db-user
+          SSM_DB_PASSWORD: !Sub /todo-advogados/${Environment}/db-password
+          SSM_JWT_SECRET: !Sub /todo-advogados/${Environment}/jwt-secret
+          SSM_SECRET_KEY: !Sub /todo-advogados/${Environment}/secret-key
+
+      # IAM Policies
+      Policies:
+        # CloudWatch Logs
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-api:*"
+
+        # SSM Parameter Store (read secrets)
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/todo-advogados/${Environment}/*"
+
+        # X-Ray (optional - disabled by default)
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - xray:PutTraceSegments
+                - xray:PutTelemetryRecords
+              Resource: "*"
+
+      # API Gateway Events
+      Events:
+        # ==========================================
+        # ROOT & HEALTH CHECK
+        # ==========================================
+        RootPath:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: GET
+            ApiId: !Ref TodoApi
+
+        HealthCheck:
+          Type: HttpApi
+          Properties:
+            Path: /health
+            Method: GET
+            ApiId: !Ref TodoApi
+
+        # ==========================================
+        # USUARIO ROUTES
+        # ==========================================
+        # POST /usuarios - Criar usuário
+        CreateUsuario:
+          Type: HttpApi
+          Properties:
+            Path: /usuarios
+            Method: POST
+            ApiId: !Ref TodoApi
+
+        # POST /login - Login
+        Login:
+          Type: HttpApi
+          Properties:
+            Path: /login
+            Method: POST
+            ApiId: !Ref TodoApi
+
+        # GET /usuarios/me - Obter usuário atual
+        GetCurrentUsuario:
+          Type: HttpApi
+          Properties:
+            Path: /usuarios/me
+            Method: GET
+            ApiId: !Ref TodoApi
+
+        # ==========================================
+        # TAREFA ROUTES
+        # ==========================================
+        # POST /tarefas - Criar tarefa
+        CreateTarefa:
+          Type: HttpApi
+          Properties:
+            Path: /tarefas
+            Method: POST
+            ApiId: !Ref TodoApi
+
+        # GET /tarefas - Listar tarefas
+        ListTarefas:
+          Type: HttpApi
+          Properties:
+            Path: /tarefas
+            Method: GET
+            ApiId: !Ref TodoApi
+
+        # GET /tarefas/{tarefa_id} - Obter tarefa por ID
+        GetTarefa:
+          Type: HttpApi
+          Properties:
+            Path: /tarefas/{tarefa_id}
+            Method: GET
+            ApiId: !Ref TodoApi
+
+        # PUT /tarefas/{tarefa_id} - Atualizar tarefa
+        UpdateTarefa:
+          Type: HttpApi
+          Properties:
+            Path: /tarefas/{tarefa_id}
+            Method: PUT
+            ApiId: !Ref TodoApi
+
+        # DELETE /tarefas/{tarefa_id} - Deletar tarefa
+        DeleteTarefa:
+          Type: HttpApi
+          Properties:
+            Path: /tarefas/{tarefa_id}
+            Method: DELETE
+            ApiId: !Ref TodoApi
+
+        # ==========================================
+        # CATCH-ALL (fallback para rotas não mapeadas)
+        # ==========================================
+        CatchAll:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            ApiId: !Ref TodoApi
+
+  # HTTP API (v2)
+  TodoApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Environment
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowCredentials: false
+        MaxAge: 600
+
+      # Access Logging
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        Format: "$context.requestId $context.error.message $context.error.messageString"
+
+      # Default Stage Settings
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 100
+        ThrottlingRateLimit: 50
+
+  # CloudWatch Log Group (API Gateway)
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AWS::StackName}
+      RetentionInDays: 7
+
+  # CloudWatch Log Group (Lambda)
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}-api
+      RetentionInDays: 7
+
+# Outputs
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiUrl
+
+  ApiFqdn:
+    Description: API Gateway FQDN
+    Value: !Sub ${TodoApi}.execute-api.${AWS::Region}.amazonaws.com
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiFqdn
+
+  LambdaFunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt TodoApiFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaArn
+
+  LambdaFunctionName:
+    Description: Lambda Function Name
+    Value: !Ref TodoApiFunction
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaName
+
+  LambdaRoleArn:
+    Description: Lambda IAM Role ARN
+    Value: !GetAtt TodoApiFunctionRole.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaRoleArn
+
+  # ROTAS DISPONÍVEIS
+  AvailableRoutes:
+    Description: Rotas disponíveis na API
+    Value: |
+      GET    /                    - Root
+      GET    /health              - Health check
+      POST   /usuarios            - Criar usuário
+      POST   /login               - Login
+      GET    /usuarios/me         - Obter usuário atual (requer auth)
+      POST   /tarefas             - Criar tarefa (requer auth)
+      GET    /tarefas             - Listar tarefas (requer auth)
+      GET    /tarefas/{id}        - Obter tarefa por ID (requer auth)
+      PUT    /tarefas/{id}        - Atualizar tarefa (requer auth)
+      DELETE /tarefas/{id}        - Deletar tarefa (requer auth)
