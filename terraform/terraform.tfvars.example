@@ -1,0 +1,27 @@
+# NÃO COMMITE ARQUIVOS .tfvars PARA O GIT
+
+# AWS Configuration
+aws_region   = "us-east-1"
+project_name = "todo-advogados"
+environment  = "dev"
+
+# Database Configuration
+db_name                     = "todo_db"
+db_user                     = "postgres"
+db_instance_class           = "db.t3.micro"
+db_allocated_storage        = 20
+db_engine_version           = "15.14"
+db_backup_retention_period  = 1
+db_multi_az                 = false
+db_publicly_accessible      = true
+
+# Secrets (set via environment variables)
+# export TF_VAR_db_password="YourStrongPassword123!"
+# export TF_VAR_jwt_secret_key="$(openssl rand -base64 32)"
+# export TF_VAR_secret_key="$(openssl rand -base64 32)"
+
+# Tags
+tags = {
+  Owner = "DevTeam"
+  CostCenter = "Engineering"
+}
